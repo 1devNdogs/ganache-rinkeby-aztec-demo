@@ -5,6 +5,10 @@ const HDWalletProvider = require("truffle-hdwallet-provider");
 const qxProvider = new HDWalletProvider(process.env.QX_MNEMONIC_RINKEBY, process.env.URL_PROVIDER);
 
 module.exports = {
+  mocha: {
+    enableTimeouts: false,
+    before_timeout: 2400000 // Here is 2min but can be whatever timeout is suitable for you.
+  },
   compilers: {
     solc: {
       version: '0.5.7',
@@ -26,6 +30,8 @@ module.exports = {
     rinkeby: {
       provider: qxProvider,
       network_id: 4,
+      confirmations: 2, // # of confs to wait between deployments. (default: 0)
+      skipDryRun: true
     },
   },
 };

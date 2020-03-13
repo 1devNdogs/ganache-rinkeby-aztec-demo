@@ -14,10 +14,10 @@ const {
 const { JoinSplitProof, MintProof } = aztec;
 
 contract("Private payment", accounts => {
-  const lender = secp256k1.accountFromPrivateKey(
+  const bob = secp256k1.accountFromPrivateKey(
     process.env.GANACHE_TESTING_ACCOUNT_0
   );
-  const borrower = secp256k1.accountFromPrivateKey(
+  const sally = secp256k1.accountFromPrivateKey(
     process.env.GANACHE_TESTING_ACCOUNT_1
   );
   let privatePaymentContract;
@@ -26,15 +26,14 @@ contract("Private payment", accounts => {
     privatePaymentContract = await ZkAssetMintable.deployed();
   });
 
-  it("Lender should be able to deposit 100 then pay Borrower 75 by splitting notes he owns", async () => {
-    console.log("----------------------------");
-    console.log("Lender wants to deposit 100");
-    const lenderNote1 = await aztec.note.create(lender.publicKey, 100);
+  it("Bob should be able to deposit 100 then pay sally 25 by splitting notes he owns", async () => {
+    console.log("Bob wants to deposit 100");
+    const bobNote1 = await aztec.note.create(bob.publicKey, 100);
 
-    const newMintCounterNote = await aztec.note.create(lender.publicKey, 100);
+    const newMintCounterNote = await aztec.note.create(bob.publicKey, 100);
     const zeroMintCounterNote = await aztec.note.createZeroValueNote();
     const sender = accounts[0];
-    const mintedNotes = [lenderNote1];
+    const mintedNotes = [bobNote1];
 
     const mintProof = new MintProof(
       zeroMintCounterNote,
@@ -50,21 +49,23 @@ contract("Private payment", accounts => {
     });
 
     console.log("completed mint proof");
-    console.log("Lender successfully deposited 100");
-    console.log("------------------------------------");
-    console.log("Lender wants to lend to Borrower 25");
+    console.log("Bob successfully deposited 100");
 
-    const borrowerAsk = await aztec.note.create(borrower.publicKey, 25);
+    // bob needs to pay sally for a taxi
+    // the taxi is 25
+    // if bob pays with his note worth 100 he requires 75 change
+    console.log("Bob takes a taxi, Sally is the driver");
+    const sallyTaxiFee = await aztec.note.create(sally.publicKey, 25);
 
     console.log("The fare comes to 25");
-    const lenderNote2 = await aztec.note.create(lender.publicKey, 75);
+    const bobNote2 = await aztec.note.create(bob.publicKey, 75);
     const sendProofSender = accounts[0];
     const withdrawPublicValue = 0;
     const publicOwner = accounts[0];
 
     const sendProof = new JoinSplitProof(
       mintedNotes,
-      [borrowerAsk, lenderNote2],
+      [sallyTaxiFee, bobNote2],
       sendProofSender,
       withdrawPublicValue,
       publicOwner
@@ -72,7 +73,7 @@ contract("Private payment", accounts => {
     const sendProofData = sendProof.encodeABI(privatePaymentContract.address);
     const sendProofSignatures = sendProof.constructSignatures(
       privatePaymentContract.address,
-      [lender]
+      [bob]
     );
     await privatePaymentContract.methods["confidentialTransfer(bytes,bytes)"](
       sendProofData,
@@ -82,8 +83,6 @@ contract("Private payment", accounts => {
       }
     );
 
-    console.log("Lender lend borrower 25 for the Loan and gets 75 back");
-    console.log("------------------------------------");
-
+    console.log("Bob paid sally 25 for the taxi and gets 75 back");
   });
 });
