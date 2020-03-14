@@ -30,7 +30,6 @@ module.exports = {
     rinkeby: {
       provider: qxProvider,
       network_id: 4,
-      confirmations: 2, // # of confs to wait between deployments. (default: 0)
       skipDryRun: true
     },
   },

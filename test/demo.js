@@ -14,17 +14,24 @@ const {
 const { JoinSplitProof, MintProof } = aztec;
 
 contract("Private payment", accounts => {
+  console.log("1");
+
   const bob = secp256k1.accountFromPrivateKey(
     process.env.GANACHE_TESTING_ACCOUNT_0
   );
+  console.log("2");
+
   const sally = secp256k1.accountFromPrivateKey(
     process.env.GANACHE_TESTING_ACCOUNT_1
   );
+  console.log("3");
+
   let privatePaymentContract;
 
   beforeEach(async () => {
     privatePaymentContract = await ZkAssetMintable.deployed();
   });
+  console.log("4");
 
   it("Bob should be able to deposit 100 then pay sally 25 by splitting notes he owns", async () => {
     console.log("Bob wants to deposit 100");
